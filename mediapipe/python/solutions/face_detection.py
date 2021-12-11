@@ -28,8 +28,8 @@ from mediapipe.calculators.util import non_max_suppression_calculator_pb2
 # pylint: enable=unused-import
 from mediapipe.python.solution_base import SolutionBase
 
-_SHORT_RANGE_GRAPH_FILE_PATH = 'mediapipe/modules/face_detection/face_detection_short_range_cpu.binarypb'
-_FULL_RANGE_GRAPH_FILE_PATH = 'mediapipe/modules/face_detection/face_detection_full_range_cpu.binarypb'
+_SHORT_RANGE_GRAPH_FILE_PATH = 'mediapipe/modules/face_detection/face_detection_short_range_gpu.binarypb'
+_FULL_RANGE_GRAPH_FILE_PATH = 'mediapipe/modules/face_detection/face_detection_full_range_gpu.binarypb'
 
 
 def get_key_point(

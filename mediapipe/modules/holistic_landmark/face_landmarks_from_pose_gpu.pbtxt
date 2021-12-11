@@ -32,7 +32,7 @@ output_stream: "FACE_TRACKING_ROI:face_tracking_roi"
 # Extracts image size from the input images.
 node {
   calculator: "ImagePropertiesCalculator"
-  input_stream: "IMAGE_GPU:input_video"
+  input_stream: "IMAGE_GPU:input_video_gpu"
   output_stream: "SIZE:image_size"
 }
 
@@ -49,7 +49,7 @@ node {
 # pose landmarks may be inaccurate.
 node {
   calculator: "FaceDetectionShortRangeByRoiGpu"
-  input_stream: "IMAGE:input_video"
+  input_stream: "IMAGE:input_video_gpu"
   input_stream: "ROI:face_roi_from_pose"
   output_stream: "DETECTIONS:face_detections"
 }
@@ -79,4 +79,16 @@ node {
   input_stream: "ROI:face_tracking_roi"
   input_side_packet: "WITH_ATTENTION:refine_landmarks"
   output_stream: "LANDMARKS:face_landmarks"
+}
+
+node: {
+  calculator: "ColorConvertCalculator"
+  input_stream: "RGB_IN:input_video"
+  output_stream: "RGBA_OUT:input_video_rgba"
+}
+
+node: {
+  calculator: "ImageFrameToGpuBufferCalculator"
+  input_stream: "input_video_rgba"
+  output_stream: "input_video_gpu"
 }

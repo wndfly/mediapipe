@@ -38,7 +38,7 @@ output_stream: "HANDEDNESS:handedness"
 # ratio, and therefore may result in potential letterboxing.
 node {
   calculator: "ImageToTensorCalculator"
-  input_stream: "IMAGE_GPU:image"
+  input_stream: "IMAGE_GPU:image_gpu"
   input_stream: "NORM_RECT:hand_rect"
   output_stream: "TENSORS:input_tensor"
   output_stream: "LETTERBOX_PADDING:letterbox_padding"
@@ -210,4 +210,16 @@ node {
   input_stream: "LANDMARKS:unprojected_world_landmarks"
   input_stream: "NORM_RECT:hand_rect"
   output_stream: "LANDMARKS:hand_world_landmarks"
+}
+
+node: {
+  calculator: "ColorConvertCalculator"
+  input_stream: "RGB_IN:image"
+  output_stream: "RGBA_OUT:image_rgba"
+}
+
+node: {
+  calculator: "ImageFrameToGpuBufferCalculator"
+  input_stream: "image_rgba"
+  output_stream: "image_gpu"
 }

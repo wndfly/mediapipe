@@ -4,6 +4,10 @@ type: "ObjectronGpuSubgraph"
 # Input/Output streams and input side packets.
 # Note that the input image is assumed to have aspect ratio 3:4 (width:height).
 input_stream: "IMAGE_GPU:image"
+
+# Path to TfLite model for 3D bounding box landmark prediction
+input_side_packet: "MODEL_PATH:box_landmark_model_path"
+
 # Allowed category labels, e.g. Footwear, Coffee cup, Mug, Chair, Camera
 input_side_packet: "LABELS_CSV:allowed_labels"
 # Max number of objects to detect/track. (int)
@@ -11,9 +15,45 @@ input_side_packet: "MAX_NUM_OBJECTS:max_num_objects"
 # Whether landmarks on the previous image should be used to help localize
 # landmarks on the current image. (bool)
 input_side_packet: "USE_PREV_LANDMARKS:use_prev_landmarks"
+# Bounding box landmarks topology definition.
+# The numbers are indices in the box_landmarks list.
+#
+#       3 + + + + + + + + 7
+#       +\                +\          UP
+#       + \               + \
+#       +  \              +  \        |
+#       +   4 + + + + + + + + 8       | y
+#       +   +             +   +       |
+#       +   +             +   +       |
+#       +   +     (0)     +   +       .------- x
+#       +   +             +   +        \
+#       1 + + + + + + + + 5   +         \
+#        \  +              \  +          \ z
+#         \ +               \ +           \
+#          \+                \+
+#           2 + + + + + + + + 6
 
 # Collection of detected 3D objects, represented as a FrameAnnotation.
 output_stream: "FRAME_ANNOTATION:detected_objects"
+
+# Collection of box landmarks. (NormalizedLandmarkList)
+output_stream: "MULTI_LANDMARKS:multi_box_landmarks"
+# Crop rectangles derived from bounding box landmarks.
+output_stream: "NORM_RECTS:multi_box_rects"
+
+# Loads the file in the specified path into a blob.
+node {
+  calculator: "LocalFileContentsCalculator"
+  input_side_packet: "FILE_PATH:0:box_landmark_model_path"
+  output_side_packet: "CONTENTS:0:box_landmark_model_blob"
+}
+
+# Converts the input blob into a TF Lite model.
+node {
+  calculator: "TfLiteModelCalculator"
+  input_side_packet: "MODEL_BLOB:box_landmark_model_blob"
+  output_side_packet: "MODEL:box_landmark_model"
+}
 
 # When the optional input side packet "use_prev_landmarks" is either absent or
 # set to true, uses the landmarks on the previous image to help localize
@@ -44,7 +84,7 @@ node {
 # to trigger a new round of box detection in ObjectDetectionOidV4Subgraph.
 node {
   calculator: "GateCalculator"
-  input_stream: "image"
+  input_stream: "image_gpu"
   input_stream: "DISALLOW:prev_has_enough_objects"
   output_stream: "detection_image"
 
@@ -75,7 +115,7 @@ node {
 # Extracts image size from the input images.
 node {
   calculator: "ImagePropertiesCalculator"
-  input_stream: "IMAGE_GPU:image"
+  input_stream: "IMAGE_GPU:image_gpu"
   output_stream: "SIZE:image_size"
 }
 
@@ -101,7 +141,7 @@ node {
   calculator: "AssociationNormRectCalculator"
   input_stream: "box_rects_from_detections"
   input_stream: "gated_prev_box_rects_from_landmarks"
-  output_stream: "box_rects"
+  output_stream: "multi_box_rects"
   options: {
     [mediapipe.AssociationCalculatorOptions.ext] {
       min_similarity_threshold: 0.2
@@ -116,8 +156,8 @@ node {
 # elements in the vector have been processed.
 node {
   calculator: "BeginLoopNormalizedRectCalculator"
-  input_stream: "ITERABLE:box_rects"
-  input_stream: "CLONE:image"
+  input_stream: "ITERABLE:multi_box_rects"
+  input_stream: "CLONE:image_gpu"
   output_stream: "ITEM:single_box_rect"
   output_stream: "CLONE:landmarks_image"
   output_stream: "BATCH_END:box_rects_timestamp"
@@ -125,8 +165,9 @@ node {
 
 # Subgraph that localizes box landmarks.
 node {
-  calculator: "BoxLandmarkSubgraph"
+  calculator: "BoxLandmarkGpuSubgraph"
   input_stream: "IMAGE:landmarks_image"
+  input_side_packet: "MODEL:box_landmark_model"
   input_stream: "NORM_RECT:single_box_rect"
   output_stream: "NORM_LANDMARKS:single_box_landmarks"
 }
@@ -150,6 +191,7 @@ node {
 
 # Lift the 2D landmarks to 3D using EPnP algorithm.
 node {
+  name: "Lift2DFrameAnnotationTo3DCalculator"
   calculator: "Lift2DFrameAnnotationTo3DCalculator"
   input_stream: "FRAME_ANNOTATION:box_annotations"
   output_stream: "LIFTED_FRAME_ANNOTATION:detected_objects"
@@ -176,11 +218,23 @@ node {
 # feedback loop.
 node {
   calculator: "PreviousLoopbackCalculator"
-  input_stream: "MAIN:image"
+  input_stream: "MAIN:image_gpu"
   input_stream: "LOOP:box_rects_from_landmarks"
   input_stream_info: {
     tag_index: "LOOP"
     back_edge: true
   }
   output_stream: "PREV_LOOP:prev_box_rects_from_landmarks"
+}
+
+node: {
+  calculator: "ColorConvertCalculator"
+  input_stream: "RGB_IN:image"
+  output_stream: "RGBA_OUT:image_rgba"
+}
+
+node: {
+  calculator: "ImageFrameToGpuBufferCalculator"
+  input_stream: "image_rgba"
+  output_stream: "image_gpu"
 }

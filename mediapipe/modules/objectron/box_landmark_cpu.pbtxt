@@ -1,6 +1,6 @@
 # MediaPipe Box landmark localization CPU subgraph.
 
-type: "BoxLandmarkSubgraph"
+type: "BoxLandmarkCpuSubgraph"
 
 input_stream: "IMAGE:image"
 input_stream: "NORM_RECT:box_rect"

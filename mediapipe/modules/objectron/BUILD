@@ -65,7 +65,7 @@ mediapipe_simple_subgraph(
 mediapipe_simple_subgraph(
     name = "box_landmark_gpu",
     graph = "box_landmark_gpu.pbtxt",
-    register_as = "BoxLandmarkSubgraph",
+    register_as = "BoxLandmarkGpuSubgraph",
     deps = [
         "//mediapipe/calculators/core:gate_calculator",
         "//mediapipe/calculators/core:split_vector_calculator",
@@ -86,7 +86,7 @@ mediapipe_simple_subgraph(
 mediapipe_simple_subgraph(
     name = "box_landmark_cpu",
     graph = "box_landmark_cpu.pbtxt",
-    register_as = "BoxLandmarkSubgraph",
+    register_as = "BoxLandmarkCpuSubgraph",
     deps = [
         "//mediapipe/calculators/core:gate_calculator",
         "//mediapipe/calculators/core:split_vector_calculator",

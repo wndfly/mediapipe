@@ -161,7 +161,7 @@ node {
 
 # Subgraph that localizes box landmarks.
 node {
-  calculator: "BoxLandmarkSubgraph"
+  calculator: "BoxLandmarkCpuSubgraph"
   input_stream: "IMAGE:landmarks_image"
   input_side_packet: "MODEL:box_landmark_model"
   input_stream: "NORM_RECT:single_box_rect"

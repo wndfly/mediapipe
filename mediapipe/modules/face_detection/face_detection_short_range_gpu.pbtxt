@@ -28,7 +28,7 @@ output_stream: "DETECTIONS:detections"
 # (Image).
 node: {
   calculator: "ToImageCalculator"
-  input_stream: "IMAGE_GPU:image"
+  input_stream: "IMAGE_GPU:image_gpu"
   output_stream: "IMAGE:multi_backend_image"
 }
 
@@ -75,4 +75,16 @@ node {
   input_stream: "TENSORS:detection_tensors"
   input_stream: "MATRIX:transform_matrix"
   output_stream: "DETECTIONS:detections"
+}
+
+node: {
+  calculator: "ColorConvertCalculator"
+  input_stream: "RGB_IN:image"
+  output_stream: "RGBA_OUT:image_rgba"
+}
+
+node: {
+  calculator: "ImageFrameToGpuBufferCalculator"
+  input_stream: "image_rgba"
+  output_stream: "image_gpu"
 }

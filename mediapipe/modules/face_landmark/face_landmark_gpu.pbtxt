@@ -45,7 +45,7 @@ output_stream: "LANDMARKS:face_landmarks"
 # Transforms the input image into a 192x192 tensor.
 node: {
   calculator: "ImageToTensorCalculator"
-  input_stream: "IMAGE_GPU:image"
+  input_stream: "IMAGE_GPU:image_gpu"
   input_stream: "NORM_RECT:roi"
   output_stream: "TENSORS:input_tensors"
   options: {
@@ -182,4 +182,16 @@ node {
   input_stream: "NORM_LANDMARKS:landmarks"
   input_stream: "NORM_RECT:roi"
   output_stream: "NORM_LANDMARKS:face_landmarks"
+}
+
+node: {
+  calculator: "ColorConvertCalculator"
+  input_stream: "RGB_IN:image"
+  output_stream: "RGBA_OUT:image_rgba"
+}
+
+node: {
+  calculator: "ImageFrameToGpuBufferCalculator"
+  input_stream: "image_rgba"
+  output_stream: "image_gpu"
 }

@@ -39,7 +39,7 @@ node {
 # Extracts image size from the input images.
 node {
   calculator: "ImagePropertiesCalculator"
-  input_stream: "IMAGE_GPU:input_video"
+  input_stream: "IMAGE_GPU:input_video_gpu"
   output_stream: "SIZE:image_size"
 }
 
@@ -54,7 +54,7 @@ node {
 # Predicts hand re-crop rectangle on the current frame.
 node {
   calculator: "HandRecropByRoiGpu",
-  input_stream: "IMAGE:input_video"
+  input_stream: "IMAGE:input_video_gpu"
   input_stream: "ROI:hand_roi_from_pose"
   output_stream: "HAND_ROI_FROM_RECROP:hand_roi_from_recrop"
 }
@@ -75,4 +75,16 @@ node {
   input_stream: "IMAGE:input_video"
   input_stream: "ROI:hand_tracking_roi"
   output_stream: "LANDMARKS:hand_landmarks"
+}
+
+node: {
+  calculator: "ColorConvertCalculator"
+  input_stream: "RGB_IN:input_video"
+  output_stream: "RGBA_OUT:input_video_rgba"
+}
+
+node: {
+  calculator: "ImageFrameToGpuBufferCalculator"
+  input_stream: "input_video_rgba"
+  output_stream: "input_video_gpu"
 }

@@ -106,7 +106,7 @@ node {
   output_stream: "labeled_detections"
   options: {
     [mediapipe.DetectionLabelIdToTextCalculatorOptions.ext] {
-      label_map_path: "object_detection_oidv4_labelmap.txt"
+      label_map_path: "mediapipe/modules/objectron/object_detection_oidv4_labelmap.txt"
     }
   }
 }

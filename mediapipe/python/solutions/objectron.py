@@ -75,7 +75,7 @@ class BoxLandmark(enum.IntEnum):
   BACK_TOP_RIGHT = 7
   FRONT_TOP_RIGHT = 8
 
-_BINARYPB_FILE_PATH = 'mediapipe/modules/objectron/objectron_cpu.binarypb'
+_BINARYPB_FILE_PATH = 'mediapipe/modules/objectron/objectron_gpu.binarypb'
 BOX_CONNECTIONS = frozenset([
     (BoxLandmark.BACK_BOTTOM_LEFT, BoxLandmark.FRONT_BOTTOM_LEFT),
     (BoxLandmark.BACK_BOTTOM_LEFT, BoxLandmark.BACK_TOP_LEFT),
@@ -227,7 +227,7 @@ class Objectron(SolutionBase):
             ('objectdetectionoidv4subgraph'
              '__TensorsToDetectionsCalculator.min_score_thresh'):
                 min_detection_confidence,
-            ('boxlandmarksubgraph__ThresholdingCalculator'
+            ('boxlandmarkgpusubgraph__ThresholdingCalculator'
              '.threshold'):
                 min_tracking_confidence,
             ('Lift2DFrameAnnotationTo3DCalculator'
