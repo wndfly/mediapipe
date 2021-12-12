@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 MAINTAINER <mediapipe@google.com>
 
@@ -42,16 +42,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         software-properties-common && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
     apt-get update && apt-get install -y openjdk-8-jdk && \
+    apt-get install -y mesa-common-dev libegl1-mesa-dev libgles2-mesa-dev mesa-utils protobuf-compiler&& \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 100 --slave /usr/bin/g++ g++ /usr/bin/g++-8
 RUN pip3 install --upgrade setuptools
-RUN pip3 install wheel
-RUN pip3 install future
-RUN pip3 install six==1.14.0
-RUN pip3 install tensorflow==1.14.0
-RUN pip3 install tf_slim
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
@@ -66,6 +62,18 @@ azel-${BAZEL_VERSION}-installer-linux-x86_64.sh" && \
     rm -f /bazel/installer.sh
 
 COPY . /mediapipe/
+
+RUN rm -rf /mediapipe/mediapipe/examples/
+
+RUN cd /mediapipe/
+RUN pip3 install -r requirements.txt
+RUN export HTTP_PROXY=http://192.168.2.33:1087
+RUN export HTTPS_PROXY=http://192.168.2.33:1087
+RUN python setup.py build --link-opencv && python setup.py gen_protos && python setup.py install --link-opencv
+RUN unset HTTP_PROXY
+RUN unset HTTPS_PROXY
+RUN rm -rf /mediapipe/
+RUN rm -rf /root/.cache
 
 # If we want the docker image to contain the pre-built object_detection_offline_demo binary, do the following
 # RUN bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/demo:object_detection_tensorflow_demo
