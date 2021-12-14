@@ -246,6 +246,9 @@ class BuildBinaryGraphs(build.build):
         '--copt=-DNDEBUG',
         '--copt=-DMESA_EGL_NO_X11_HEADERS',
         '--copt=-DEGL_NO_X11',
+        '--local_ram_resources=HOST_RAM*.5',
+        '--local_cpu_resources=HOST_CPUS-1',
+        '--action_env=HTTPS_PROXY=http://192.168.2.33:1087',
         '--action_env=PYTHON_BIN_PATH=' + _normalize_path(sys.executable),
         os.path.join('mediapipe/modules/', graph_path),
     ]
@@ -304,6 +307,9 @@ class BuildBazelExtension(build_ext.build_ext):
         '--copt=-DNDEBUG',
         '--copt=-DMESA_EGL_NO_X11_HEADERS',
         '--copt=-DEGL_NO_X11',
+        '--local_ram_resources=HOST_RAM*.5',
+        '--local_cpu_resources=HOST_CPUS-1',
+        '--action_env=HTTPS_PROXY=http://192.168.2.33:1087',
         '--action_env=PYTHON_BIN_PATH=' + _normalize_path(sys.executable),
         str(ext.bazel_target + '.so'),
     ]

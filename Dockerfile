@@ -39,15 +39,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libopencv-video-dev \
         libopencv-calib3d-dev \
         libopencv-features2d-dev \
-        software-properties-common && \
+        software-properties-common \
+        python3-venv libprotobuf-dev protobuf-compiler cmake \
+        mesa-common-dev libegl1-mesa-dev libgles2-mesa-dev mesa-utils \
+        pkg-config libavcodec-dev libavformat-dev libswscale-dev libv4l-dev \
+        libxvidcore-dev libx264-dev libjpeg-dev libpng-dev libtiff-dev \
+        gfortran openexr libatlas-base-dev python3-dev python3-numpy \
+        libtbb2 libtbb-dev libdc1394-22-dev && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
     apt-get update && apt-get install -y openjdk-8-jdk && \
-    apt-get install -y mesa-common-dev libegl1-mesa-dev libgles2-mesa-dev mesa-utils protobuf-compiler&& \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 100 --slave /usr/bin/g++ g++ /usr/bin/g++-8
-RUN pip3 install --upgrade setuptools
+
+ENV HTTP_PROXY=http://192.168.2.33:1087
+ENV HTTPS_PROXY=http://192.168.2.33:1087
+
+RUN pip3 install --upgrade setuptools pip
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
@@ -63,17 +72,20 @@ azel-${BAZEL_VERSION}-installer-linux-x86_64.sh" && \
 
 COPY . /mediapipe/
 
-RUN rm -rf /mediapipe/mediapipe/examples/
+WORKDIR /mediapipe/
 
-RUN cd /mediapipe/
-RUN pip3 install -r requirements.txt
-RUN export HTTP_PROXY=http://192.168.2.33:1087
-RUN export HTTPS_PROXY=http://192.168.2.33:1087
-RUN python setup.py build --link-opencv && python setup.py gen_protos && python setup.py install --link-opencv
-RUN unset HTTP_PROXY
-RUN unset HTTPS_PROXY
-RUN rm -rf /mediapipe/
-RUN rm -rf /root/.cache
+RUN rm -rf /mediapipe/mediapipe/examples/ && \
+    pip3 install -r requirements.txt && \
+    python setup.py build --link-opencv && \
+    python setup.py gen_protos && \
+    python setup.py install --link-opencv && \
+    rm -rf /root/.cache && \
+    rm -rf /mediapipe/
+
+ENV HTTP_PROXY=
+ENV HTTPS_PROXY=
+
+WORKDIR /
 
 # If we want the docker image to contain the pre-built object_detection_offline_demo binary, do the following
 # RUN bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/demo:object_detection_tensorflow_demo
