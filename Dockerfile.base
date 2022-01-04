@@ -37,7 +37,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgmp-dev libkrb5-dev liblzma-dev libmagickcore-dev libmagickwand-dev \
     libmaxminddb-dev libncurses5-dev libncursesw5-dev libpq-dev libreadline-dev \
     libsqlite3-dev libssl-dev libtool libwebp-dev libxml2-dev libxslt-dev libyaml-dev make \
-    patch xz-utils zlib1g-dev libbluetooth-dev tk-dev uuid-dev \
+    patch xz-utils zlib1g-dev libbluetooth-dev tk-dev uuid-dev libopus-dev libopus0 opus-tools \
     apt-transport-https gnupg dirmngr nasm zip yasm libvpx-dev locales libgdiplus && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
     apt-get update && apt-get install -y openjdk-8-jdk && \
