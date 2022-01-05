@@ -46,6 +46,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 100 --slave /usr/bin/g++ g++ /usr/bin/g++-8
 
+ENV HTTP_PROXY=http://192.168.2.33:1087
+ENV HTTPS_PROXY=http://192.168.2.33:1087
+ENV PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+ENV TF_CUDA_PATHS=/usr/local/cuda,/usr/lib/x86_64-linux-gnu,/usr/include
+RUN ldconfig
+
 # install python
 ENV GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D
 ENV PYTHON_VERSION=3.10.1
@@ -72,13 +79,11 @@ RUN wget -O python.tar.xz \
     --with-system-ffi \
     --without-ensurepip && \
     make -j "$(nproc)" && make install && \
-    rm -rf /usr/src/python && \
-    find /usr/local -depth \(	\( -type d -a \( -name test -o -name tests -o -name idle_test \) \) \
-    -o \( -type f -a \( -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) \) \) -exec rm -rf '{}' + && \
+    rm -rf /usr/src/python && \    
     ldconfig && python3 --version
 
 # install FFmpeg
-RUN git clone https://git.ffmpeg.org/ffmpeg.git && \
+RUN git clone https://git.ffmpeg.org/ffmpeg.git --config "http.proxy=${HTTP_PROXY}" && \
     cd ffmpeg && \
     git checkout n4.4 && \
     ./configure \
@@ -118,50 +123,50 @@ RUN git clone https://git.ffmpeg.org/ffmpeg.git && \
     cd .. && \
     rm -rf ffmpeg
 
-ENV PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-ENV TF_CUDA_PATHS=/usr/local/cuda,/usr/lib/x86_64-linux-gnu,/usr/include
-RUN ldconfig
-
 RUN ln -s /usr/local/bin/idle3 /usr/bin/idle && \
     ln -s /usr/local/bin/pydoc3 /usr/bin/pydoc && \
     ln -s /usr/local/bin/python3 /usr/bin/python && \
     ln -s /usr/local/bin/python3-config /usr/bin/python-config
 
-ENV PYTHON_PIP_VERSION=21.2.4
-ENV PYTHON_SETUPTOOLS_VERSION=57.5.0
-ENV PYTHON_GET_PIP_URL=https://github.com/pypa/get-pip/raw/3cb8888cc2869620f57d5d2da64da38f516078c7/public/get-pip.py
-ENV PYTHON_GET_PIP_SHA256=c518250e91a70d7b20cceb15272209a4ded2a0c263ae5776f129e0d9b5674309
+# install pip
+RUN python -m ensurepip --upgrade
+# ENV PYTHON_PIP_VERSION=21.2.4
+# ENV PYTHON_SETUPTOOLS_VERSION=57.5.0
+# ENV PYTHON_GET_PIP_URL=https://github.com/pypa/get-pip/raw/3cb8888cc2869620f57d5d2da64da38f516078c7/public/get-pip.py
+# ENV PYTHON_GET_PIP_SHA256=c518250e91a70d7b20cceb15272209a4ded2a0c263ae5776f129e0d9b5674309
 
-RUN wget -O get-pip.py "$PYTHON_GET_PIP_URL" && \
-    echo "$PYTHON_GET_PIP_SHA256 *get-pip.py" | sha256sum --check --strict - && \
-    python get-pip.py --disable-pip-version-check --no-cache-dir "pip==$PYTHON_PIP_VERSION" \
-    "setuptools==$PYTHON_SETUPTOOLS_VERSION" && pip --version && \
-    find /usr/local -depth \(	\( -type d -a \( -name test -o -name tests -o -name idle_test \) \) \
-    -o \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \) -exec rm -rf '{}' + && \
-    rm -f get-pip.py
+# RUN wget -O get-pip.py "$PYTHON_GET_PIP_URL" && \
+#     echo "$PYTHON_GET_PIP_SHA256 *get-pip.py" | sha256sum --check --strict - && \
+#     python get-pip.py --disable-pip-version-check --no-cache-dir "pip==$PYTHON_PIP_VERSION" \
+#     "setuptools==$PYTHON_SETUPTOOLS_VERSION" && pip --version && \
+#     find /usr/local -depth \(	\( -type d -a \( -name test -o -name tests -o -name idle_test \) \) \
+#     -o \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \) -exec rm -rf '{}' + && \
+#     rm -f get-pip.py
 
 # Install bazel
-ARG BAZEL_VERSION=4.2.1
-RUN mkdir /bazel && \
-    wget --no-check-certificate -O /bazel/installer.sh "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/b\
-azel-${BAZEL_VERSION}-installer-linux-x86_64.sh" && \
-    wget --no-check-certificate -O  /bazel/LICENSE.txt "https://raw.githubusercontent.com/bazelbuild/bazel/master/LICENSE" && \
+# ARG BAZEL_VERSION=4.2.1
+# RUN mkdir /bazel && \
+#     wget --no-check-certificate -O /bazel/installer.sh "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/b\
+# azel-${BAZEL_VERSION}-installer-linux-x86_64.sh" && \
+#     wget --no-check-certificate -O  /bazel/LICENSE.txt "https://raw.githubusercontent.com/bazelbuild/bazel/master/LICENSE" && \
+#     chmod +x /bazel/installer.sh && \
+#     /bazel/installer.sh  && \
+#     rm -f /bazel/installer.sh
+COPY bazel-4.2.1-installer-linux-x86_64.sh /installer.sh
+
+RUN mkdir /bazel && mv /installer.sh /bazel/installer.sh && \
     chmod +x /bazel/installer.sh && \
     /bazel/installer.sh  && \
-    rm -f /bazel/installer.sh
+    rm -f /bazel/installer.sh    
 #RUN npm install -g @bazel/bazelisk
 
 COPY . /mediapipe/
 
 WORKDIR /mediapipe/
 
-ENV HTTP_PROXY=http://192.168.2.33:1087
-ENV HTTPS_PROXY=http://192.168.2.33:1087
-
 RUN rm -rf /mediapipe/mediapipe/examples/ && \
     pip3 install -r requirements.txt && \
-    python setup.py build --link-opencv && \
+    python setup.py build_py --link-opencv && \
     python setup.py gen_protos && \
     python setup.py install --link-opencv && \
     rm -rf /root/.cache && \

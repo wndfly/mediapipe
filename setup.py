@@ -425,14 +425,11 @@ class RemoveGenerated(setuptools.Command):
     if os.path.exists(_get_backup_file(MP_THIRD_PARTY_BUILD)):
       os.remove(MP_THIRD_PARTY_BUILD)
       shutil.move(_get_backup_file(MP_THIRD_PARTY_BUILD), MP_THIRD_PARTY_BUILD)
-    for init_py in SUBDIR_INIT_PY_FILES:
+    for init_py in DIR_INIT_PY_FILES:
       try:
         os.remove(init_py)
       except Exception:
         pass
-
-    clean.clean.run(self)
-
 
 setuptools.setup(
     name='mediapipe',

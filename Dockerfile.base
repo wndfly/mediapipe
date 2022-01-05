@@ -118,11 +118,6 @@ RUN git clone https://git.ffmpeg.org/ffmpeg.git && \
     cd .. && \
     rm -rf ffmpeg
 
-ENV PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-ENV TF_CUDA_PATHS=/usr/local/cuda,/usr/lib/x86_64-linux-gnu,/usr/include
-RUN ldconfig
-
 RUN ln -s /usr/local/bin/idle3 /usr/bin/idle && \
     ln -s /usr/local/bin/pydoc3 /usr/bin/pydoc && \
     ln -s /usr/local/bin/python3 /usr/bin/python && \
