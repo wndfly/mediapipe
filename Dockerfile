@@ -21,6 +21,9 @@ WORKDIR /mediapipe
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub
+
 RUN sed -i s:/archive.ubuntu.com:/mirrors.tuna.tsinghua.edu.cn/ubuntu:g /etc/apt/sources.list && \ 
     apt-get -y update --fix-missing && apt-get install -y --no-install-recommends \
     build-essential gcc-8 g++-8 ca-certificates curl git wget unzip \
@@ -58,10 +61,10 @@ RUN ldconfig
 
 # install python
 ENV GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D
-ENV PYTHON_VERSION=3.10.1
+ENV PYTHON_VERSION=3.10.5
 RUN wget -O python.tar.xz \
-    "https://www.m.motiontek.cn/python/Python-${PYTHON_VERSION}.tar.xz" && \
-    #"https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz" && \
+    #"https://www.m.motiontek.cn/python/Python-${PYTHON_VERSION}.tar.xz" && \
+    "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz" && \
     wget -O python.tar.xz.asc \
     "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz.asc" && \
     export GNUPGHOME="$(mktemp -d)" && \
